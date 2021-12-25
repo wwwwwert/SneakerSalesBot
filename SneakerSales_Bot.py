@@ -6,13 +6,15 @@
 import telebot
 from telebot import types
 import copy
+import os
 
-pass_to_project = '/Users/black_chick/Desktop/practice'
+pass_to_project = ""
 
 # In[3]:
 
+token = str(os.environ['token'])
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot(token)
 knownUsers = set()
 userStep = {}
 profile = {}
@@ -65,7 +67,7 @@ def save_user(id):
     folder_name = creating_users[id].get_model_type()
     for size in creating_users[id].get_sizes():
         size_file = open(
-            f'{pass_to_project}/sought_for_items/{folder_name}/{folder_name}{size}.txt',
+            f'{pass_to_project}sought_for_items/{folder_name}/{folder_name}{size}.txt',
             'a')
         size_file.write(str(id) + '\n')
         size_file.close()
@@ -75,7 +77,7 @@ def delete_user_parameters(id):
     sizes = creating_users[id].get_sizes()
     folder_name = creating_users[id].get_model_type()
     for size in sizes:
-        file_location = f'{pass_to_project}/sought_for_items/{folder_name}/{folder_name}{size}.txt'
+        file_location = f'{pass_to_project}sought_for_items/{folder_name}/{folder_name}{size}.txt'
         size_file = open(file_location, 'r')
         users = size_file.read().strip().split('\n')
         size_file.close()
@@ -88,6 +90,18 @@ def delete_user_parameters(id):
 
 
 # In[ ]:
+
+@bot.message_handler(commands=['help'])
+def help_message(message):
+    cid = message.chat.id
+    text = message.text.strip()
+    markup = types.ReplyKeyboardRemove()
+    commands = ['/start - запуск',
+                '/help - просмотр команд',
+                '/edit - изменить параметры',
+                '/report - сообщить об ошибке'
+                ]
+    bot.send_message(cid, '\n\n'.join(commands), reply_markup=markup)
 
 
 @bot.message_handler(commands=['start'])
@@ -229,19 +243,6 @@ def add_size(message):
                          "Кажется, Вы ввели что-то не то О_о \n Повторите")
 
 
-@bot.message_handler(commands=['help'])
-def help_message(message):
-    cid = message.chat.id
-    text = message.text.strip()
-    markup = types.ReplyKeyboardRemove()
-    commands = ['/start - запуск',
-                '/help - просмотр команд',
-                '/edit - изменить параметры',
-                '/report - сообщить об ошибке'
-                ]
-    bot.send_message(cid, '\n\n'.join(commands), reply_markup=markup)
-
-
 @bot.message_handler(commands=['report'])
 def help_message(message):
     cid = message.chat.id
@@ -266,6 +267,3 @@ def add_report(message):
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
-
-
-# In[ ]:
