@@ -11,13 +11,15 @@ import schedule
 import time
 import random
 from fake_useragent import UserAgent
+import os
 
-pass_to_project = '/Users/black_chick/Desktop/practice'
+pass_to_project = ""
 
 # In[2]:
 
+token = str(os.environ['token'])
 
-bot = telebot.TeleBot('1742786316:AAEeb2QV6ZkMf3lx_QMJ47uvcw2uMWccc48')
+bot = telebot.TeleBot(token)
 
 
 def prepare_txt_files(new_filename, old_filename):
@@ -73,8 +75,8 @@ def get_response(link):
 
 
 def brandshop_scrapper():
-    prepare_txt_files(f'{pass_to_project}/brandshop_scrap.txt',
-                      f'{pass_to_project}/brandshop_scrap_old.txt')
+    prepare_txt_files(f'{pass_to_project}brandshop_scrap.txt',
+                      f'{pass_to_project}brandshop_scrap_old.txt')
     pages_to_scan = 5
 
     for page_num in range(1, pages_to_scan):
@@ -123,7 +125,7 @@ def brandshop_scrapper():
             else:
                 sneakers_types.append('unisex')
 
-        add_sneakers_scrap(f'{pass_to_project}/brandshop_scrap.txt',
+        add_sneakers_scrap(f'{pass_to_project}brandshop_scrap.txt',
                            sneakers_names, sneakers_links,
                            sneakers_photo, sneakers_prices_old,
                            sneakers_prices, sneakers_types, sneakers_sizes)
@@ -136,15 +138,15 @@ brandshop_scrapper()
 
 
 def find_new_items_brandshop():
-    open(f'{pass_to_project}/new_items_brandshop.txt', 'w').close()
-    new_items = open(f'{pass_to_project}/new_items_brandshop.txt', 'w')
+    open(f'{pass_to_project}new_items_brandshop.txt', 'w').close()
+    new_items = open(f'{pass_to_project}new_items_brandshop.txt', 'w')
 
-    bsh_file = open(f'{pass_to_project}/brandshop_scrap.txt', 'r')
+    bsh_file = open(f'{pass_to_project}brandshop_scrap.txt', 'r')
     sneakers = list(
         map(lambda x: x.split('\n'), bsh_file.read().strip().split('\n\n')))
     bsh_file.close()
 
-    bsh_old_file = open(f'{pass_to_project}/brandshop_scrap_old.txt', 'r')
+    bsh_old_file = open(f'{pass_to_project}brandshop_scrap_old.txt', 'r')
     old_sneakers = list(map(lambda x: x.split('\n'),
                             bsh_old_file.read().strip().split('\n\n')))
     bsh_old_file.close()
@@ -176,6 +178,7 @@ def find_new_items_brandshop():
     new_items.close()
 
 
+find_new_items_brandshop()
 find_new_items_brandshop()
 
 
@@ -209,17 +212,17 @@ def notify_about_item(sneaker):
 
             size = size.split()[0]
             users_id_txt = open(
-                f'{pass_to_project}/sought_for_items/{group}/{group}{size}.txt',
+                f'{pass_to_project}sought_for_items/{group}/{group}{size}.txt',
                 'r')
 
             users_id = users_id_txt.read().strip().split('\n')
             users_id_txt.close()
 
             open(
-                f'{pass_to_project}/sought_for_items/{group}/{group}{size}.txt',
+                f'{pass_to_project}sought_for_items/{group}/{group}{size}.txt',
                 'w').close()
             users_id_txt_new = open(
-                f'{pass_to_project}/sought_for_items/{group}/{group}{size}.txt',
+                f'{pass_to_project}sought_for_items/{group}/{group}{size}.txt',
                 'w')
 
             for user_id in users_id:
@@ -238,7 +241,7 @@ def notify_about_item(sneaker):
 
 
 def notify_about_new_items_brandshop():
-    new_items = open(f'{pass_to_project}/new_items_brandshop.txt', 'r')
+    new_items = open(f'{pass_to_project}new_items_brandshop.txt', 'r')
     sneakers = [sneaker_block.split('\n') for sneaker_block in
                 new_items.read().strip().split('\n\n')]
 
