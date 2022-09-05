@@ -1,64 +1,54 @@
-### Важно
-Бот работает на сервере Amazon.
-Возможны ошибки, связанные с txt файлами (вернее их отсутствием). Я не нашёл нигде инструкцию, как заставить докер создавать файлики, поэтому закинул их ручками в репо. Если будут вопросы (или вы вдруг решите мне объяснить как это грамотно делать) - пишите @black_chick 
-Также, я не уверен, что скрипт бота и parse.py корректно работают параллельно, ибо я залил на облако в день дедлайна и дальше локального тестирования не уходил (тоже хотел бы услышать коммент по этому поводу). Вижу, что на облаке возникают конфликты при очередном парсинге, но вроде это не мешает работе. Если в терминале в разных вкладках запускать, то норм
+### The meaning of the bot
 
-**ps** если решите сами протестить бота, то там после выбора первого размера будет доступна в самом верху над размерами кнопка пропустить (не знаю, как поставить её куда-то на видное место)
-
-**pps** я не уверен, что на момент проверки бот будет жив, ибо могут возникнуть какие-то оч странные ошибки во время парсинга (вернее работы с библиотеками для этого дела). По наблюдениям, скрипту требуется не менее 10 минут, чтобы спарсить товары ибо ip сервера амазон банится ddos guard'ом  
-
-### Смысл бота
-
-Зачастую, люди хотят купить вещь на скидках, но им лень заходить периодически на сайт и мониторить интересные предложения, подходящие им. Я создал бота, который самостоятельно отслеживает новые скидки и уведомляет заинтересованных в ней юзеров. 
+Usually, people want to buy an item at a discount, but it is too exhausting to to visit the site and monitor interesting offers that suit them. I created a bot that independently monitors new discounts and notifies users who are interested in it.
 
 ### @SneakerSales_Bot
-Бот доступен по адресу **@SneakerSales_Bot** в telegram
+bot's telegram id: **@SneakerSales_Bot**
 
-Используется тематическая картинка и описание для бота
+Thematic picture and description for the bot are used
 
-Код написан с использованием библиотеки telebot. Первое сообщение от пользователя '/start' появляется при запуске бота.
-Бот приветствует и сразу предлогает выбрать параметры (пол, размер), либо информирует пользователя о его текущих параметрах. Реализовывается стандартный многоступенчатый диалог бота с юзером при помощи запоминания user_step (на каком уровне диалога пользователь) в словарь {id: step}. Пользователь сообщает тип модели и размеры. 
+The code is written using the telebot library. The first message from the user '/start' appears when the bot is started.
+The bot welcomes and immediately offers to choose parameters (gender, size), or informs the user about his existing parameters. The standard multi-stage dialog of the bot with the user is implemented by storing the user_step (at what level of the dialog the user is) in the {id: step} dictionary. The user reports the model type and sizes.
 
-Бот записывает id пользователя в текстовый документ по адресу "model type"/"model type""size".txt в папке sought_for_items. Также запоминает параметры пользователя в creating_users {id: user_parameters}, где user_parameters - объект соответствующего простого класса для удобной работы с параметрами юзеров. 
-
+The bot writes the user id to a text document at "model type"/"model type""size".txt in the sought_for_items folder. It also remembers user parameters in creating_users {id: user_parameters}, where user_parameters is an object of the corresponding simple class for convenient work with user parameters.
 **Доступны команды**
 
-/report - пользователь сообщает свои замечания боту, он пишет их в report.txt
+/report - the user reports his comments to the bot, he writes them in report.txt
 
-/edit - пользователь меняет свои параметры (почти также, как при первом запуске, только бот переспрашивает). Тут, к сожалению, никакой эвристики нет. Бот за линию удаляет id пользователя из соответствующих текстовых документов.
+/edit - the user changes his parameters (almost the same as at the first start, only the bot asks again)
 
-/help - информирует о доступных командах
+/help - informs about available commands
 
 ### Scrapping
 
-**Подготовка текстовых документов перед записью новых данных**
+**Preparing text documents before writing new data**
 
-Функция **prepare_txt_files** принимает расположение текстового документа, в который записан последний скрап (new) и 
-расположение текстового документа, в котором предыдущий скрап (old).
+The **prepare_txt_files** function takes the location of the text document in which the last scrap is written (new) and
+the location of the text document in which the previous scrap (old).
 
-Соответственно, функция готовит эти два файла для записи: 
+So, the function prepares these two files for writing:
 
-    1) очищает old
-    2) переносит данные из new в old
-    3) очищает new, чтобы туда можно было записать скрап. 
+     1) clears old
+     2) transfers data from new to old
+     3) clears new so that scrap can be written there
     
-**Настойчиво посылаем запросы**
+**Submit requests persistently**
 
-Так как сайты имеют защиту от подобного рода занятий, приходится посылать запросы несколько раз. 
-Функция **get_response** принимет ссылку и пытается получить response с фейковым user agent и моими cookies, вытащенными при загрузке brandshop. При возникновении ошибки 403 - посылает запрос заново через 2 -  10 секунды. При ошибке 404 - возвращает None.
+Since sites are protected from this kind of activity, you have to send requests several times.
+The **get_response** function will take a link and try to get a response with a fake user agent and my cookies pulled when loading brandshop. If an error 403 occurs, it sends the request again after 2 - 10 seconds. On error 404 - returns None.
 
-**Сбор данных**
+**Data collection**
 
-Функции 'shop name'_scrap скрапят данные из раздела "SALES" со всех страниц (логика говорит парсить только первую страницу и смотреть обновления на ней, но сайт ведёт себя не культурно и постоянно перемешивает товары).
-Сначала происходит подготовка соответствующих тесктовых документов для записи скрапа prepare_txt_files.
-Далее настойчиво запрашиваем страницу скидок.
-Функция вытаскивает название модели, ссылку на неё, ссылку на фото в приемлемом качестве, старую и новую цены, тип модели и доступные размеры. Запускает **add_sneakers_scrap**, которая добавляет данные в соответствующий текстовый документ. 
+The 'shop name'_scrap functions will scrape data from the "SALES" section from all pages (the logic says to parse only the first page and watch updates on it, but the site constantly mixes products).
+First, the corresponding text documents are prepared for writing the prepare_txt_files scrap.
+Next, we persistently request a discount page.
+The function pulls out the name of the model, a link to it, a link to a photo in acceptable quality, old and new prices, model type and available sizes. Runs **add_sneakers_scrap**, which adds data to the corresponding text document.
 
 
-### Поиск новых скидок, уведомление пользователей
+### Search for new discounts, notify users
 
-Функция **find\_new\_items\_"shop name"** пробегает по старому и новому скрапу магазина и переносит вещи, которые встречаются только в новом скрапе в файл new\_items\_'shop name'.txt. Также, если в новом и старом скрапе присутствует одинаковая вещь, но в новом больше её размеров, то вещь перенесётся только с новыми размерами.
+The **find\_new\_items\_"shop name"** function iterates through the old and new shop scraps and transfers items that are only found in the new scrap into the new\_items\_'shop name'.txt file. Also, if the new and old scrap contains the same thing, but the new one has more of its size, then the thing will be transferred only with the new size.
 
-Функция **notify\_about\_new\_items\_"shop name"** просто считывает соответствующий документ new_items, извлекает из него параметры вещи и запускает  **notify\_about\_item** - функция уведомлеяет юзеров (отправляет доступный размер и ссылку) по id из текстового документа, соответствующего типу модели и размеру. Некоторые производители делают половинные размеры, например 42.5 EU. При появлении такого товара будут уведомленны пользователи, ожидающие размер 42 и 43. Если сообщение отправить не удалось (пользователь выключил бот), то его id будет удалён из текстового документа, чтобы не тратить на него время в следующий раз (конечно, юзер сможет заново запустить бот и передать данные)
+The **notify\_about\_new\_items\_"shop name"** function simply reads the corresponding new_items document, extracts the item parameters from it and runs **notify\_about\_item** - the function notifies users (sends the available size and a link ) by id from a text document corresponding to the model type and size. Some manufacturers make half sizes, such as 42.5 EU. When such a product appears, users will be notified, expecting sizes 42 and 43. If the message could not be sent (the user turned off the bot), then its id will be deleted from the text document so as not to waste time on it next time (of course, the user will be able to restart bot and send data)
 
-Так хочется проверять новые скидки и уведомлять пользователей с какой-то периодичностью, я делаю функцию **regular\_update\_and\_notification**, которая выполняет сценарий скрапинга, поиска новых вещей и уведомления пользователей. С помощью модуля schedule реализую периодичное выполнение regular\_update\_and\_notificatio с частотой в день
+Since I want to check for new discounts and notify users at some intervals, I make a **regular\_update\_and\_notification** function that executes the script of scraping, searching for new things and notifying users. Using the schedule module, I implement periodic execution of regular\_update\_and\_notificatio with a frequency per day
